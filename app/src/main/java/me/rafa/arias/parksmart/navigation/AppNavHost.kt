@@ -10,9 +10,11 @@ import me.rafa.arias.parksmart.screens.CheckoutScreen
 import me.rafa.arias.parksmart.screens.DashboardScreen
 import me.rafa.arias.parksmart.screens.HistoryScreen
 import me.rafa.arias.parksmart.screens.LoginScreen
+import me.rafa.arias.parksmart.screens.ProfileScreen
 import me.rafa.arias.parksmart.screens.RegisterStep1Screen
 import me.rafa.arias.parksmart.screens.RegisterStep2Screen
 import me.rafa.arias.parksmart.screens.RegisterSuccessScreen
+import me.rafa.arias.parksmart.screens.ReportsScreen
 import me.rafa.arias.parksmart.screens.ScannerScreen
 
 
@@ -128,7 +130,22 @@ fun AppNavHost() {
                 onBackClick = { navController.popBackStack() }
             )
         }
-
+        composable(Routes.REPORTS) {
+            ReportsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onLogoutClick = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
 
     }
+
 }
