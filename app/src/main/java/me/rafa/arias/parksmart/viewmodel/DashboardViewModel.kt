@@ -4,15 +4,15 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import me.rafa.arias.parksmart.model.VehicleRecord
+import me.rafa.arias.parksmart.model.Vehicle
 
 data class DashboardUiState(
     val cuposDisponibles: Int = 120,
     val cuposTotales: Int = 150,
-    val ultimosVehiculos: List<VehicleRecord> = listOf(
-        VehicleRecord("ABC-123", "🚗 Carro", "10:32 AM", null, "Adentro"),
-        VehicleRecord("XYZ-456", "🏍️ Moto", "10:15 AM", null, "Adentro"),
-        VehicleRecord("DEF-789", "🚗 Carro", "09:58 AM", null, "Adentro")
+    val ultimosVehiculos: List<Vehicle> = listOf(
+        Vehicle(placa = "ABC-123", tipo = "🚗 Carro", horaIngreso = "10:32 AM"),
+        Vehicle(placa = "XYZ-456", tipo = "🏍️ Moto",  horaIngreso = "10:15 AM"),
+        Vehicle(placa = "DEF-789", tipo = "🚗 Carro", horaIngreso = "09:58 AM")
     )
 )
 

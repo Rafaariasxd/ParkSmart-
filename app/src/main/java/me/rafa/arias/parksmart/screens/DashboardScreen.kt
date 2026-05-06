@@ -198,10 +198,10 @@ fun DashboardScreen(
 
                 state.ultimosVehiculos.forEach { vehiculo ->
                     VehicleCard(
-                        placa = vehiculo.placa,
-                        tipo = vehiculo.tipo,
-                        hora = vehiculo.horaIngreso,
-                        estado = vehiculo.estado
+                        placa = vehiculo.getPlaca(),
+                        tipo = vehiculo.getTipo(),
+                        hora = vehiculo.getHoraIngreso(),
+                        estado = vehiculo.getEstado()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }

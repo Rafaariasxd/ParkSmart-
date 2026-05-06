@@ -13,7 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import me.rafa.arias.parksmart.model.VehicleRecord
+import me.rafa.arias.parksmart.model.Vehicle
 import me.rafa.arias.parksmart.ui.ParkSmartColors
 import me.rafa.arias.parksmart.viewmodel.HistoryViewModel
 
@@ -139,8 +139,8 @@ fun ResumenDiaItem(
 
 
 @Composable
-fun HistoryVehicleCard(vehiculo: VehicleRecord) {
-    val estadoAdentro = vehiculo.estado == "Adentro"
+fun HistoryVehicleCard(vehiculo: Vehicle) {
+    val estadoAdentro = vehiculo.estaAdentro()
 
     Box(
         modifier = Modifier
@@ -156,12 +156,12 @@ fun HistoryVehicleCard(vehiculo: VehicleRecord) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(text = vehiculo.placa, style = MaterialTheme.typography.titleMedium, color = ParkSmartColors.TextPrimary)
-                Text(text = vehiculo.tipo, style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextSecondary)
+                Text(text = vehiculo.getPlaca(), style = MaterialTheme.typography.titleMedium, color = ParkSmartColors.TextPrimary)
+                Text(text = vehiculo.getTipo(), style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextSecondary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Ingresó: ${vehiculo.horaIngreso}" +
-                            if (vehiculo.horaSalida != null) "  •  Salió: ${vehiculo.horaSalida}" else "",
+                    text = "Ingresó: ${vehiculo.getHoraIngreso()}" +
+                            if (vehiculo.getHoraSalida() != null) "  •  Salió: ${vehiculo.getHoraSalida()}" else "",
                     fontSize = 11.sp,
                     color = ParkSmartColors.TextSecondary
                 )
@@ -173,7 +173,7 @@ fun HistoryVehicleCard(vehiculo: VehicleRecord) {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = vehiculo.estado,
+                    text = vehiculo.getEstado(),
                     fontSize = 11.sp,
                     color = if (estadoAdentro) ParkSmartColors.Primary else ParkSmartColors.Error
                 )
