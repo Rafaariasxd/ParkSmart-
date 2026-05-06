@@ -1,33 +1,17 @@
 package me.rafa.arias.parksmart.navigation
 
-
-
 import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import me.rafa.arias.parksmart.screens.CheckoutScreen
-import me.rafa.arias.parksmart.screens.DashboardScreen
-import me.rafa.arias.parksmart.screens.HistoryScreen
-import me.rafa.arias.parksmart.screens.LoginScreen
-import me.rafa.arias.parksmart.screens.ProfileScreen
-import me.rafa.arias.parksmart.screens.RegisterStep1Screen
-import me.rafa.arias.parksmart.screens.RegisterStep2Screen
-import me.rafa.arias.parksmart.screens.RegisterSuccessScreen
-import me.rafa.arias.parksmart.screens.ReportsScreen
-import me.rafa.arias.parksmart.screens.ScannerScreen
+import me.rafa.arias.parksmart.screens.*
+import me.rafa.arias.parksmart.viewmodel.*
 
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-
-
-    var registerNombre by remember { mutableStateOf("") }
-    var registerCedula by remember { mutableStateOf("") }
-    var registerEmail by remember { mutableStateOf("") }
-    var registerTelefono by remember { mutableStateOf("") }
-    var registerPassword by remember { mutableStateOf("") }
 
     NavHost(
         navController = navController,
@@ -35,59 +19,50 @@ fun AppNavHost() {
     ) {
 
         composable(Routes.LOGIN) {
-            LoginScreen(
-                onLoginClick = { email, password ->
-                    // ahorita navega directo al dashboard
-                    //  despues tenog q  conectar Firebase Auth
-                    navController.navigate(Routes.DASHBOARD) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
+            val vm: LoginViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                vm.uiEvent.collect { event ->
+                    when (event) {
+                        LoginUiEvent.NavigateToDashboard -> navController.navigate(Routes.DASHBOARD) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                        LoginUiEvent.NavigateToRegister -> navController.navigate(Routes.REGISTER_STEP1)
                     }
-                },
-                onRegisterClick = {
-                    navController.navigate(Routes.REGISTER_STEP1)
                 }
-            )
+            }
+            LoginScreen(viewModel = vm)
         }
 
         composable(Routes.REGISTER_STEP1) {
+            val vm: RegisterStep1ViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                vm.uiEvent.collect { event ->
+                    when (event) {
+                        RegisterStep1UiEvent.NavigateToStep2 -> navController.navigate(Routes.REGISTER_STEP2)
+                    }
+                }
+            }
             RegisterStep1Screen(
-                onNextClick = { nombre, cedula, email, telefono, password ->
-
-                    registerNombre = nombre
-                    registerCedula = cedula
-                    registerEmail = email
-                    registerTelefono = telefono
-                    registerPassword = password
-                    navController.navigate(Routes.REGISTER_STEP2)
-                },
-                onBackClick = {
-                    navController.popBackStack()
-                }
+                viewModel = vm,
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         composable(Routes.REGISTER_STEP2) {
-            RegisterStep2Screen(
-                onRegisterClick = { nombreParqueadero, direccion, ciudad, nit, cupos, tarifaCarro, tarifaMoto ->
-                    // Aquí dsp conecto la  Firestore
-                    navController.navigate(Routes.REGISTER_SUCCESS) {
-                        popUpTo(Routes.LOGIN) { inclusive = false }
+            val vm: RegisterStep2ViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                vm.uiEvent.collect { event ->
+                    when (event) {
+                        is RegisterStep2UiEvent.NavigateToSuccess -> {
+                            navController.navigate("${Routes.REGISTER_SUCCESS}/${event.nombre}/${event.cupos}") {
+                                popUpTo(Routes.LOGIN) { inclusive = false }
+                            }
+                        }
                     }
-                },
-                onBackClick = {
-                    navController.popBackStack()
                 }
-            )
-        }
-        composable(Routes.REGISTER_STEP2) {
+            }
             RegisterStep2Screen(
-                onRegisterClick = { nombreParqueadero, direccion, ciudad, nit, cupos, tarifaCarro, tarifaMoto ->
-                    navController.navigate(
-                        "${Routes.REGISTER_SUCCESS}/$nombreParqueadero/$cupos"
-                    ) {
-                        popUpTo(Routes.LOGIN) { inclusive = false }
-                    }
-                },
+                viewModel = vm,
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -103,8 +78,11 @@ fun AppNavHost() {
                 }
             )
         }
+
         composable(Routes.DASHBOARD) {
+            val vm: DashboardViewModel = viewModel()
             DashboardScreen(
+                viewModel = vm,
                 onScanClick = { navController.navigate(Routes.SCANNER) },
                 onCheckoutClick = { navController.navigate(Routes.CHECKOUT) },
                 onHistoryClick = { navController.navigate(Routes.HISTORY) },
@@ -112,40 +90,64 @@ fun AppNavHost() {
                 onProfileClick = { navController.navigate(Routes.PROFILE) }
             )
         }
+
         composable(Routes.SCANNER) {
+            val vm: ScannerViewModel = viewModel()
             ScannerScreen(
+                viewModel = vm,
                 onBackClick = { navController.popBackStack() },
                 onConfirmClick = { navController.popBackStack() }
             )
         }
+
         composable(Routes.CHECKOUT) {
+            val vm: CheckoutViewModel = viewModel()
             CheckoutScreen(
+                viewModel = vm,
                 onBackClick = { navController.popBackStack() },
                 onConfirmClick = { navController.popBackStack() }
             )
         }
 
         composable(Routes.HISTORY) {
+            val vm: HistoryViewModel = viewModel()
             HistoryScreen(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-        composable(Routes.REPORTS) {
-            ReportsScreen(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-        composable(Routes.PROFILE) {
-            ProfileScreen(
+                viewModel = vm,
                 onBackClick = { navController.popBackStack() },
-                onLogoutClick = {
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
+                onHomeClick = { navController.navigate(Routes.DASHBOARD) {
+                    popUpTo(Routes.DASHBOARD) { inclusive = false }
+                }},
+                onReportsClick = { navController.navigate(Routes.REPORTS) }
+            )
+        }
+
+        composable(Routes.REPORTS) {
+            val vm: ReportsViewModel = viewModel()
+            ReportsScreen(
+                viewModel = vm,
+                onBackClick = { navController.popBackStack() },
+                onHomeClick = { navController.navigate(Routes.DASHBOARD) {
+                    popUpTo(Routes.DASHBOARD) { inclusive = false }
+                }},
+                onHistoryClick = { navController.navigate(Routes.HISTORY) }
+            )
+        }
+
+        composable(Routes.PROFILE) {
+            val vm: ProfileViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                vm.uiEvent.collect { event ->
+                    when (event) {
+                        ProfileUiEvent.NavigateToLogin -> navController.navigate(Routes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 }
+            }
+            ProfileScreen(
+                viewModel = vm,
+                onBackClick = { navController.popBackStack() }
             )
         }
-
     }
-
 }

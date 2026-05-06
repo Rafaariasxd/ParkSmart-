@@ -22,16 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
+import me.rafa.arias.parksmart.viewmodel.LoginViewModel
 
 
 @Composable
-fun LoginScreen(
-    onLoginClick: (String, String) -> Unit = { _, _ -> },
-    onRegisterClick: () -> Unit = {}
-) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+fun LoginScreen(viewModel: LoginViewModel) {
+    val state by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -40,26 +36,16 @@ fun LoginScreen(
             .verticalScroll(rememberScrollState())
     ) {
 
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(280.dp)
-                .clip(
-                    RoundedCornerShape(
-                        bottomStart = 32.dp,
-                        bottomEnd = 32.dp
-                    )
-                )
+                .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
                 .background(ParkSmartColors.Primary),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                Text(
-                    text = "🅿",
-                    fontSize = 72.sp
-                )
+                Text(text = "🅿", fontSize = 72.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "ParkSmart",
@@ -73,7 +59,6 @@ fun LoginScreen(
                 )
             }
         }
-
 
         Column(
             modifier = Modifier
@@ -95,40 +80,33 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-
             ParkSmartInput(
-                value = email,
-                onValueChange = { email = it },
+                value = state.email,
+                onValueChange = { viewModel.onEmailChange(it) },
                 placeholder = "Correo electrónico",
                 keyboardType = KeyboardType.Email
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
             ParkSmartInput(
-                value = password,
-                onValueChange = { password = it },
+                value = state.password,
+                onValueChange = { viewModel.onPasswordChange(it) },
                 placeholder = "Contraseña",
                 keyboardType = KeyboardType.Password,
-                visualTransformation = if (passwordVisible)
-                    VisualTransformation.None
-                else
-                    PasswordVisualTransformation(),
+                visualTransformation = if (state.passwordVisible)
+                    VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                         Icon(
-                            imageVector = if (passwordVisible)
-                                Icons.Filled.Visibility
-                            else
-                                Icons.Filled.VisibilityOff,
+                            imageVector = if (state.passwordVisible)
+                                Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
                             tint = ParkSmartColors.TextSecondary
                         )
                     }
                 }
             )
-
 
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -144,16 +122,11 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-
             Button(
-                onClick = { onLoginClick(email, password) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+                onClick = { viewModel.onLoginClick() },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ParkSmartColors.Primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
             ) {
                 Text(
                     text = "Ingresar",
@@ -164,41 +137,27 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Divider(
-                    modifier = Modifier.weight(1f),
-                    color = ParkSmartColors.Divider
-                )
+                Divider(modifier = Modifier.weight(1f), color = ParkSmartColors.Divider)
                 Text(
                     text = "  ¿Nuevo aquí?  ",
                     style = MaterialTheme.typography.bodyMedium,
                     color = ParkSmartColors.TextSecondary
                 )
-                Divider(
-                    modifier = Modifier.weight(1f),
-                    color = ParkSmartColors.Divider
-                )
+                Divider(modifier = Modifier.weight(1f), color = ParkSmartColors.Divider)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
             OutlinedButton(
-                onClick = onRegisterClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+                onClick = { viewModel.onRegisterClick() },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(10.dp),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    width = 2.dp
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = ParkSmartColors.Primary
-                )
+                border = ButtonDefaults.outlinedButtonBorder.copy(width = 2.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ParkSmartColors.Primary)
             ) {
                 Text(
                     text = "🅿  Registra tu parqueadero",
@@ -236,15 +195,9 @@ fun ParkSmartInput(
         value = value,
         onValueChange = onValueChange,
         placeholder = {
-            Text(
-                text = placeholder,
-                color = ParkSmartColors.TextSecondary,
-                fontSize = 15.sp
-            )
+            Text(text = placeholder, color = ParkSmartColors.TextSecondary, fontSize = 15.sp)
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
+        modifier = Modifier.fillMaxWidth().height(52.dp),
         shape = RoundedCornerShape(10.dp),
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedContainerColor = ParkSmartColors.PrimaryLight,
@@ -259,6 +212,7 @@ fun ParkSmartInput(
         singleLine = true
     )
 }
+
 @Composable
 fun ParkSmartInput(
     value: String,
@@ -273,11 +227,7 @@ fun ParkSmartInput(
         value = value,
         onValueChange = onValueChange,
         placeholder = {
-            Text(
-                text = placeholder,
-                color = ParkSmartColors.TextSecondary,
-                fontSize = 15.sp
-            )
+            Text(text = placeholder, color = ParkSmartColors.TextSecondary, fontSize = 15.sp)
         },
         modifier = modifier.height(52.dp),
         shape = RoundedCornerShape(10.dp),

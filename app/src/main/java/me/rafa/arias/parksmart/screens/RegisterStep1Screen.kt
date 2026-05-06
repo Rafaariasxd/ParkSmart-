@@ -1,8 +1,5 @@
 package me.rafa.arias.parksmart.screens
 
-
-
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,22 +19,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
+import me.rafa.arias.parksmart.viewmodel.RegisterStep1ViewModel
 
 
 @Composable
 fun RegisterStep1Screen(
-    onNextClick: (nombre: String, cedula: String, email: String, telefono: String, password: String) -> Unit = { _, _, _, _, _ -> },
+    viewModel: RegisterStep1ViewModel,
     onBackClick: () -> Unit = {}
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var cedula by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    val state by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -46,7 +36,6 @@ fun RegisterStep1Screen(
             .verticalScroll(rememberScrollState())
     ) {
 
-        // ── Top Bar ──
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -74,7 +63,6 @@ fun RegisterStep1Screen(
             )
         }
 
-
         LinearProgressIndicator(
             progress = { 0.5f },
             modifier = Modifier.fillMaxWidth().height(4.dp),
@@ -89,57 +77,55 @@ fun RegisterStep1Screen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-
             SectionLabel(text = "👤  Información personal")
             Spacer(modifier = Modifier.height(12.dp))
 
             ParkSmartInput(
-                value = nombre,
-                onValueChange = { nombre = it },
+                value = state.nombre,
+                onValueChange = { viewModel.onNombreChange(it) },
                 placeholder = "Nombre completo"
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             ParkSmartInput(
-                value = cedula,
-                onValueChange = { cedula = it },
+                value = state.cedula,
+                onValueChange = { viewModel.onCedulaChange(it) },
                 placeholder = "Número de cédula",
                 keyboardType = KeyboardType.Number
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             ParkSmartInput(
-                value = email,
-                onValueChange = { email = it },
+                value = state.email,
+                onValueChange = { viewModel.onEmailChange(it) },
                 placeholder = "Correo electrónico",
                 keyboardType = KeyboardType.Email
             )
             Spacer(modifier = Modifier.height(12.dp))
 
             ParkSmartInput(
-                value = telefono,
-                onValueChange = { telefono = it },
+                value = state.telefono,
+                onValueChange = { viewModel.onTelefonoChange(it) },
                 placeholder = "Teléfono de contacto",
                 keyboardType = KeyboardType.Phone
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
             SectionLabel(text = "🔒  Seguridad")
             Spacer(modifier = Modifier.height(12.dp))
 
             ParkSmartInput(
-                value = password,
-                onValueChange = { password = it },
+                value = state.password,
+                onValueChange = { viewModel.onPasswordChange(it) },
                 placeholder = "Contraseña",
                 keyboardType = KeyboardType.Password,
-                visualTransformation = if (passwordVisible)
+                visualTransformation = if (state.passwordVisible)
                     VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                         Icon(
-                            imageVector = if (passwordVisible)
+                            imageVector = if (state.passwordVisible)
                                 Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
                             tint = ParkSmartColors.TextSecondary
@@ -150,16 +136,16 @@ fun RegisterStep1Screen(
             Spacer(modifier = Modifier.height(12.dp))
 
             ParkSmartInput(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                value = state.confirmPassword,
+                onValueChange = { viewModel.onConfirmPasswordChange(it) },
                 placeholder = "Confirmar contraseña",
                 keyboardType = KeyboardType.Password,
-                visualTransformation = if (confirmPasswordVisible)
+                visualTransformation = if (state.confirmPasswordVisible)
                     VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    IconButton(onClick = { viewModel.toggleConfirmPasswordVisibility() }) {
                         Icon(
-                            imageVector = if (confirmPasswordVisible)
+                            imageVector = if (state.confirmPasswordVisible)
                                 Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
                             tint = ParkSmartColors.TextSecondary
@@ -169,7 +155,6 @@ fun RegisterStep1Screen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
 
             Box(
                 modifier = Modifier
@@ -185,11 +170,10 @@ fun RegisterStep1Screen(
                 )
             }
 
-
-            if (errorMessage.isNotEmpty()) {
+            if (state.errorMessage.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = errorMessage,
+                    text = state.errorMessage,
                     color = ParkSmartColors.Error,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -197,29 +181,11 @@ fun RegisterStep1Screen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
             Button(
-                onClick = {
-                    when {
-                        nombre.isBlank() || cedula.isBlank() || email.isBlank() || telefono.isBlank() ->
-                            errorMessage = "Por favor completa todos los campos"
-                        password.length < 6 ->
-                            errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                        password != confirmPassword ->
-                            errorMessage = "Las contraseñas no coinciden"
-                        else -> {
-                            errorMessage = ""
-                            onNextClick(nombre, cedula, email, telefono, password)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+                onClick = { viewModel.onNextClick() },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ParkSmartColors.Primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
             ) {
                 Text(
                     text = "Siguiente →",
@@ -229,7 +195,6 @@ fun RegisterStep1Screen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
 
             TextButton(
                 onClick = onBackClick,

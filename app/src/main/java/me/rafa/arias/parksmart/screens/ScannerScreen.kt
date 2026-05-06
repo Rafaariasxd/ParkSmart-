@@ -1,7 +1,5 @@
 package me.rafa.arias.parksmart.screens
 
-
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -18,16 +16,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
+import me.rafa.arias.parksmart.viewmodel.ScannerViewModel
 
 
 @Composable
 fun ScannerScreen(
+    viewModel: ScannerViewModel,
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {}
 ) {
-    var placaDetectada by remember { mutableStateOf("ABC-123") }
-    var tipoVehiculo by remember { mutableStateOf("Carro") }
-    var escaneando by remember { mutableStateOf(true) }
+    val state by viewModel.uiState.collectAsState()
 
     Box(
         modifier = Modifier
@@ -35,28 +33,15 @@ fun ScannerScreen(
             .background(ParkSmartColors.CameraBackground)
     ) {
 
-        // ── Simulacion de la camaraa ──
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF1A1A1A)),
+            modifier = Modifier.fillMaxSize().background(Color(0xFF1A1A1A)),
             contentAlignment = Alignment.Center
         ) {
-            // Texto que simula la cámara (despues tengo q agregar la funcionalidad de vd
-            if (escaneando) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "📷",
-                        fontSize = 48.sp
-                    )
+            if (state.escaneando) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "📷", fontSize = 48.sp)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Cámara activa",
-                        color = Color.White.copy(alpha = 0.5f),
-                        fontSize = 14.sp
-                    )
+                    Text(text = "Cámara activa", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                     Text(
                         text = "(Funcionalidad real se agrega despues)",
                         color = Color.White.copy(alpha = 0.3f),
@@ -65,7 +50,6 @@ fun ScannerScreen(
                 }
             }
         }
-
 
         Box(
             modifier = Modifier
@@ -76,9 +60,7 @@ fun ScannerScreen(
         ) {
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 8.dp)
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
             ) {
                 Text("←", fontSize = 22.sp, color = Color.White)
             }
@@ -90,17 +72,13 @@ fun ScannerScreen(
             )
         }
 
-
         Text(
             text = "Alinea la placa dentro del marco",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 80.dp)
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 80.dp)
         )
-
 
         Box(
             modifier = Modifier
@@ -108,51 +86,32 @@ fun ScannerScreen(
                 .offset(y = (-60).dp)
                 .width(280.dp)
                 .height(100.dp)
-                .border(
-                    width = 3.dp,
-                    color = ParkSmartColors.Primary,
-                    shape = RoundedCornerShape(12.dp)
-                ),
+                .border(width = 3.dp, color = ParkSmartColors.Primary, shape = RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = placaDetectada,
+                text = state.placaDetectada,
                 fontSize = 28.sp,
                 color = Color.White.copy(alpha = 0.3f),
                 style = MaterialTheme.typography.headlineMedium
             )
-
-
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(2.dp)
-                    .background(ParkSmartColors.Primary)
+                modifier = Modifier.fillMaxWidth().height(2.dp).background(ParkSmartColors.Primary)
             )
         }
 
-
-        if (escaneando) {
+        if (state.escaneando) {
             Button(
-                onClick = { escaneando = false },
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = 80.dp),
+                onClick = { viewModel.onSimularEscaneo() },
+                modifier = Modifier.align(Alignment.Center).offset(y = 80.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ParkSmartColors.Primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
             ) {
-                Text(
-                    text = "📷  Simular escaneo",
-                    color = ParkSmartColors.White,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = "📷  Simular escaneo", color = ParkSmartColors.White, style = MaterialTheme.typography.titleMedium)
             }
         }
 
-
-        if (!escaneando) {
+        if (!state.escaneando) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,12 +121,9 @@ fun ScannerScreen(
                     .padding(horizontal = 24.dp, vertical = 20.dp)
             ) {
                 Column {
-
-
                     Box(
                         modifier = Modifier
-                            .width(40.dp)
-                            .height(4.dp)
+                            .width(40.dp).height(4.dp)
                             .clip(RoundedCornerShape(2.dp))
                             .background(ParkSmartColors.Divider)
                             .align(Alignment.CenterHorizontally)
@@ -183,15 +139,10 @@ fun ScannerScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-
                     OutlinedTextField(
-                        value = placaDetectada,
-                        onValueChange = { nuevo ->
-                            if (nuevo.length <= 7) placaDetectada = nuevo.uppercase()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
+                        value = state.placaDetectada,
+                        onValueChange = { viewModel.onPlacaChange(it) },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(10.dp),
                         textStyle = MaterialTheme.typography.headlineMedium.copy(
                             textAlign = TextAlign.Center,
@@ -204,13 +155,10 @@ fun ScannerScreen(
                             focusedBorderColor = ParkSmartColors.Primary,
                         ),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text
-                        )
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     Text(
                         text = "Tipo de vehículo",
@@ -226,30 +174,25 @@ fun ScannerScreen(
                     ) {
                         TipoVehiculoBtn(
                             label = "🚗  Carro",
-                            selected = tipoVehiculo == "Carro",
+                            selected = state.tipoVehiculo == "Carro",
                             modifier = Modifier.weight(1f),
-                            onClick = { tipoVehiculo = "Carro" }
+                            onClick = { viewModel.onTipoVehiculoChange("Carro") }
                         )
                         TipoVehiculoBtn(
                             label = "🏍️  Moto",
-                            selected = tipoVehiculo == "Moto",
+                            selected = state.tipoVehiculo == "Moto",
                             modifier = Modifier.weight(1f),
-                            onClick = { tipoVehiculo = "Moto" }
+                            onClick = { viewModel.onTipoVehiculoChange("Moto") }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-
                     Button(
                         onClick = onConfirmClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ParkSmartColors.Primary
-                        )
+                        colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
                     ) {
                         Text(
                             text = "Registrar Ingreso",
@@ -258,9 +201,8 @@ fun ScannerScreen(
                         )
                     }
 
-
                     TextButton(
-                        onClick = { escaneando = true },
+                        onClick = { viewModel.onVolverAEscanear() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
@@ -275,7 +217,7 @@ fun ScannerScreen(
     }
 }
 
-// ── Botón selector d carro o moto──
+
 @Composable
 fun TipoVehiculoBtn(
     label: String,
@@ -288,8 +230,7 @@ fun TipoVehiculoBtn(
         modifier = modifier.height(44.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) ParkSmartColors.Primary
-            else ParkSmartColors.PrimaryLight
+            containerColor = if (selected) ParkSmartColors.Primary else ParkSmartColors.PrimaryLight
         ),
         border = if (!selected) ButtonDefaults.outlinedButtonBorder else null
     ) {

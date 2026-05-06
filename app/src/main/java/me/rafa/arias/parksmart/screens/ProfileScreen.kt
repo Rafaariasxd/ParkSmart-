@@ -1,7 +1,5 @@
 package me.rafa.arias.parksmart.screens
 
-
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,29 +15,19 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
+import me.rafa.arias.parksmart.viewmodel.ProfileViewModel
 
 
 @Composable
 fun ProfileScreen(
-    onBackClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {}
+    viewModel: ProfileViewModel,
+    onBackClick: () -> Unit = {}
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    val state by viewModel.uiState.collectAsState()
 
-    // Datos de ejemplo — después vendrán de Firebase
-    val datosOperario = mapOf(
-        "nombre" to "Carlos Gómez",
-        "rol" to "Operario",
-        "sede" to "Cabecera, Bucaramanga",
-        "turno" to "7:00 AM - 3:00 PM",
-        "vehiculosHoy" to "47 registrados",
-        "recaudadoHoy" to "$94.200"
-    )
-
-    // Diálogo de confirmación cerrar sesión
-    if (showLogoutDialog) {
+    if (state.showLogoutDialog) {
         AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
+            onDismissRequest = { viewModel.onDismissLogoutDialog() },
             title = {
                 Text(
                     text = "Cerrar Sesión",
@@ -56,20 +44,15 @@ fun ProfileScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogoutClick()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ParkSmartColors.Error
-                    ),
+                    onClick = { viewModel.onLogoutConfirm() },
+                    colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Error),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Sí, cerrar sesión", color = ParkSmartColors.White)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
+                TextButton(onClick = { viewModel.onDismissLogoutDialog() }) {
                     Text("Cancelar", color = ParkSmartColors.TextSecondary)
                 }
             },
@@ -85,7 +68,6 @@ fun ProfileScreen(
             .verticalScroll(rememberScrollState())
     ) {
 
-        // ── Top Bar ──
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -93,10 +75,7 @@ fun ProfileScreen(
                 .background(ParkSmartColors.Primary)
                 .padding(horizontal = 8.dp)
         ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier.align(Alignment.CenterStart)
-            ) {
+            IconButton(onClick = onBackClick, modifier = Modifier.align(Alignment.CenterStart)) {
                 Text("←", fontSize = 22.sp, color = ParkSmartColors.White)
             }
             Text(
@@ -108,14 +87,11 @@ fun ProfileScreen(
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ── Avatar ──
             Box(
                 modifier = Modifier
                     .size(90.dp)
@@ -130,25 +106,23 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = datosOperario["nombre"] ?: "",
+                text = state.nombre,
                 style = MaterialTheme.typography.headlineMedium,
                 color = ParkSmartColors.TextPrimary
             )
-
             Text(
-                text = "${datosOperario["rol"]} · ${datosOperario["sede"]}",
+                text = "${state.rol} · ${state.sede}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = ParkSmartColors.TextSecondary
             )
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // ── Cards de info ──
             val infoItems = listOf(
-                Triple("📍", "Sede asignada", datosOperario["sede"] ?: ""),
-                Triple("🕐", "Turno actual", datosOperario["turno"] ?: ""),
-                Triple("📅", "Vehículos hoy", datosOperario["vehiculosHoy"] ?: ""),
-                Triple("💰", "Recaudado hoy", datosOperario["recaudadoHoy"] ?: ""),
+                Triple("📍", "Sede asignada", state.sede),
+                Triple("🕐", "Turno actual", state.turno),
+                Triple("📅", "Vehículos hoy", state.vehiculosHoy),
+                Triple("💰", "Recaudado hoy", state.recaudadoHoy),
             )
 
             infoItems.forEach { (icon, label, valor) ->
@@ -158,16 +132,11 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Botón cerrar sesión ──
             Button(
-                onClick = { showLogoutDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
+                onClick = { viewModel.onShowLogoutDialog() },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ParkSmartColors.ErrorLight
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.ErrorLight)
             ) {
                 Text(
                     text = "🚪  Cerrar Sesión",
@@ -189,13 +158,9 @@ fun ProfileScreen(
     }
 }
 
-// ── Card de info del perfil ──
+
 @Composable
-fun ProfileInfoCard(
-    icon: String,
-    label: String,
-    valor: String
-) {
+fun ProfileInfoCard(icon: String, label: String, valor: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -204,22 +169,12 @@ fun ProfileInfoCard(
             .background(ParkSmartColors.Surface)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, fontSize = 20.sp)
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = ParkSmartColors.TextSecondary
-                )
-                Text(
-                    text = valor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ParkSmartColors.TextPrimary
-                )
+                Text(text = label, style = MaterialTheme.typography.labelSmall, color = ParkSmartColors.TextSecondary)
+                Text(text = valor, style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextPrimary)
             }
         }
     }

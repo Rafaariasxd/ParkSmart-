@@ -1,7 +1,5 @@
 package me.rafa.arias.parksmart.screens
 
-
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,27 +16,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
+import me.rafa.arias.parksmart.viewmodel.DashboardViewModel
 
 
 @Composable
 fun DashboardScreen(
+    viewModel: DashboardViewModel,
     onScanClick: () -> Unit = {},
     onCheckoutClick: () -> Unit = {},
     onHistoryClick: () -> Unit = {},
     onReportsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {}
 ) {
-    // Datos de ejemplo
-    val cuposDisponibles = 120
-    val cuposTotales = 150
-    val porcentajeOcupado = cuposDisponibles.toFloat() / cuposTotales.toFloat()
-    val parqueaderoLleno = cuposDisponibles == 0
+    val state by viewModel.uiState.collectAsState()
 
-    val ultimosVehiculos = listOf(
-        Triple("ABC-123", "🚗 Carro", "10:32 AM"),
-        Triple("XYZ-456", "🏍️ Moto", "10:15 AM"),
-        Triple("DEF-789", "🚗 Carro", "09:58 AM"),
-    )
+    val porcentajeOcupado = state.cuposDisponibles.toFloat() / state.cuposTotales.toFloat()
+    val parqueaderoLleno = state.cuposDisponibles == 0
 
     Scaffold(
         bottomBar = {
@@ -59,15 +52,11 @@ fun DashboardScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
-                    .background(
-                        if (parqueaderoLleno) ParkSmartColors.Error
-                        else ParkSmartColors.Primary
-                    )
+                    .background(if (parqueaderoLleno) ParkSmartColors.Error else ParkSmartColors.Primary)
                     .padding(horizontal = 20.dp),
             ) {
                 Column(modifier = Modifier.align(Alignment.CenterStart)) {
@@ -97,7 +86,6 @@ fun DashboardScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -124,11 +112,7 @@ fun DashboardScreen(
                                         .background(ParkSmartColors.Error)
                                         .padding(horizontal = 12.dp, vertical = 4.dp)
                                 ) {
-                                    Text(
-                                        text = "⚠ LLENO",
-                                        fontSize = 11.sp,
-                                        color = ParkSmartColors.White
-                                    )
+                                    Text(text = "⚠ LLENO", fontSize = 11.sp, color = ParkSmartColors.White)
                                 }
                             }
                         }
@@ -136,44 +120,29 @@ fun DashboardScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = "$cuposDisponibles / $cuposTotales",
+                            text = "${state.cuposDisponibles} / ${state.cuposTotales}",
                             style = MaterialTheme.typography.headlineLarge,
-                            color = if (parqueaderoLleno)
-                                ParkSmartColors.Error
-                            else
-                                ParkSmartColors.TextPrimary,
+                            color = if (parqueaderoLleno) ParkSmartColors.Error else ParkSmartColors.TextPrimary,
                             fontSize = 32.sp
                         )
-
                         Text(
                             text = "cupos libres hoy",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (parqueaderoLleno)
-                                ParkSmartColors.Error
-                            else
-                                ParkSmartColors.Primary
+                            color = if (parqueaderoLleno) ParkSmartColors.Error else ParkSmartColors.Primary
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-
                         LinearProgressIndicator(
                             progress = { porcentajeOcupado },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = if (parqueaderoLleno)
-                                ParkSmartColors.Error
-                            else
-                                ParkSmartColors.Primary,
+                            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                            color = if (parqueaderoLleno) ParkSmartColors.Error else ParkSmartColors.Primary,
                             trackColor = ParkSmartColors.Divider
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-
 
                 Text(
                     text = "Acciones Rápidas",
@@ -187,7 +156,6 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-
                     ActionButton(
                         icon = "📷",
                         label = "Ingresar\nVehículo",
@@ -196,8 +164,6 @@ fun DashboardScreen(
                         modifier = Modifier.weight(1f),
                         onClick = onScanClick
                     )
-
-
                     ActionButton(
                         icon = "💳",
                         label = "Registrar\nSalida",
@@ -209,7 +175,6 @@ fun DashboardScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -231,12 +196,12 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ultimosVehiculos.forEach { (placa, tipo, hora) ->
+                state.ultimosVehiculos.forEach { vehiculo ->
                     VehicleCard(
-                        placa = placa,
-                        tipo = tipo,
-                        hora = hora,
-                        estado = "Adentro"
+                        placa = vehiculo.placa,
+                        tipo = vehiculo.tipo,
+                        hora = vehiculo.horaIngreso,
+                        estado = vehiculo.estado
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -259,10 +224,7 @@ fun ActionButton(
 ) {
     Box(
         modifier = modifier
-            .shadow(
-                if (enabled) 6.dp else 0.dp,
-                RoundedCornerShape(16.dp)
-            )
+            .shadow(if (enabled) 6.dp else 0.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(
                 when {
@@ -313,41 +275,22 @@ fun VehicleCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = placa,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = ParkSmartColors.TextPrimary
-                )
-                Text(
-                    text = tipo,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ParkSmartColors.TextSecondary
-                )
+                Text(text = placa, style = MaterialTheme.typography.titleMedium, color = ParkSmartColors.TextPrimary)
+                Text(text = tipo, style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextSecondary)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = hora,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ParkSmartColors.TextSecondary,
-                    fontSize = 11.sp
-                )
+                Text(text = hora, style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextSecondary, fontSize = 11.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(11.dp))
-                        .background(
-                            if (estadoAdentro) ParkSmartColors.PrimaryLight
-                            else ParkSmartColors.ErrorLight
-                        )
+                        .background(if (estadoAdentro) ParkSmartColors.PrimaryLight else ParkSmartColors.ErrorLight)
                         .padding(horizontal = 10.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = estado,
                         fontSize = 10.sp,
-                        color = if (estadoAdentro)
-                            ParkSmartColors.Primary
-                        else
-                            ParkSmartColors.Error
+                        color = if (estadoAdentro) ParkSmartColors.Primary else ParkSmartColors.Error
                     )
                 }
             }
@@ -369,10 +312,7 @@ fun ParkSmartNavBar(
         Triple("📊", "Reportes", onReportsClick),
     )
 
-    NavigationBar(
-        containerColor = ParkSmartColors.Surface,
-        tonalElevation = 8.dp
-    ) {
+    NavigationBar(containerColor = ParkSmartColors.Surface, tonalElevation = 8.dp) {
         items.forEachIndexed { index, (icon, label, onClick) ->
             NavigationBarItem(
                 selected = selectedIndex == index,
@@ -382,10 +322,7 @@ fun ParkSmartNavBar(
                     Text(
                         text = label,
                         fontSize = 10.sp,
-                        color = if (selectedIndex == index)
-                            ParkSmartColors.Primary
-                        else
-                            ParkSmartColors.TextSecondary
+                        color = if (selectedIndex == index) ParkSmartColors.Primary else ParkSmartColors.TextSecondary
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

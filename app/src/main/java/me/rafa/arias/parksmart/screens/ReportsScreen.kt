@@ -1,7 +1,5 @@
 package me.rafa.arias.parksmart.screens
 
-
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,57 +15,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
+import me.rafa.arias.parksmart.viewmodel.ReportsViewModel
 
 
 @Composable
 fun ReportsScreen(
+    viewModel: ReportsViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onHistoryClick: () -> Unit = {}
 ) {
-    var periodoSeleccionado by remember { mutableStateOf("Hoy") }
+    val state by viewModel.uiState.collectAsState()
     val periodos = listOf("Hoy", "Semana", "Mes")
-
-    // Datos de ejemplo — después vendrán de Firebase
-    val datosPorPeriodo = mapOf(
-        "Hoy" to mapOf(
-            "ingresos" to "$94.200",
-            "vehiculos" to "47",
-            "carros" to "31",
-            "motos" to "16",
-            "ocupacion" to "80%"
-        ),
-        "Semana" to mapOf(
-            "ingresos" to "$580.400",
-            "vehiculos" to "312",
-            "carros" to "198",
-            "motos" to "114",
-            "ocupacion" to "74%"
-        ),
-        "Mes" to mapOf(
-            "ingresos" to "$2.340.000",
-            "vehiculos" to "1.248",
-            "carros" to "820",
-            "motos" to "428",
-            "ocupacion" to "78%"
-        )
-    )
-
-    val datos = datosPorPeriodo[periodoSeleccionado] ?: datosPorPeriodo["Hoy"]!!
-
-    // Datos de barras por hora (simulados)
-    val barrasPorHora = listOf(
-        Pair("7", 0.3f),
-        Pair("8", 0.5f),
-        Pair("9", 0.7f),
-        Pair("10", 1.0f),
-        Pair("11", 0.6f),
-        Pair("12", 0.8f),
-        Pair("13", 0.4f),
-        Pair("14", 0.55f),
-        Pair("15", 0.75f),
-        Pair("16", 0.45f),
-    )
 
     Scaffold(
         bottomBar = {
@@ -88,7 +47,6 @@ fun ReportsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // ── Top Bar ──
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,10 +54,7 @@ fun ReportsScreen(
                     .background(ParkSmartColors.Primary)
                     .padding(horizontal = 8.dp)
             ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
+                IconButton(onClick = onBackClick, modifier = Modifier.align(Alignment.CenterStart)) {
                     Text("←", fontSize = 22.sp, color = ParkSmartColors.White)
                 }
                 Text(
@@ -111,13 +66,10 @@ fun ReportsScreen(
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── Selector de período ──
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -128,24 +80,20 @@ fun ReportsScreen(
                 ) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         periodos.forEach { periodo ->
-                            val selected = periodoSeleccionado == periodo
+                            val selected = state.periodoSeleccionado == periodo
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        if (selected) ParkSmartColors.Primary
-                                        else Color.Transparent
-                                    )
+                                    .background(if (selected) ParkSmartColors.Primary else Color.Transparent)
                                     .padding(vertical = 10.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                TextButton(onClick = { periodoSeleccionado = periodo }) {
+                                TextButton(onClick = { viewModel.onPeriodoChange(periodo) }) {
                                     Text(
                                         text = periodo,
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = if (selected) ParkSmartColors.White
-                                        else ParkSmartColors.TextSecondary,
+                                        color = if (selected) ParkSmartColors.White else ParkSmartColors.TextSecondary,
                                         fontSize = 13.sp
                                     )
                                 }
@@ -156,24 +104,17 @@ fun ReportsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── Cards métricas ──
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MetricCard(
-                        icon = "💰",
-                        valor = datos["ingresos"] ?: "",
-                        label = "Total Ingresos",
-                        color = ParkSmartColors.Primary,
-                        modifier = Modifier.weight(1f)
+                        icon = "💰", valor = state.datos["ingresos"] ?: "",
+                        label = "Total Ingresos", color = ParkSmartColors.Primary, modifier = Modifier.weight(1f)
                     )
                     MetricCard(
-                        icon = "🚗",
-                        valor = datos["vehiculos"] ?: "",
-                        label = "Vehículos",
-                        color = Color(0xFF2196F3),
-                        modifier = Modifier.weight(1f)
+                        icon = "🚗", valor = state.datos["vehiculos"] ?: "",
+                        label = "Vehículos", color = Color(0xFF2196F3), modifier = Modifier.weight(1f)
                     )
                 }
 
@@ -184,24 +125,17 @@ fun ReportsScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MetricCard(
-                        icon = "🚙",
-                        valor = datos["carros"] ?: "",
-                        label = "Carros",
-                        color = ParkSmartColors.Primary,
-                        modifier = Modifier.weight(1f)
+                        icon = "🚙", valor = state.datos["carros"] ?: "",
+                        label = "Carros", color = ParkSmartColors.Primary, modifier = Modifier.weight(1f)
                     )
                     MetricCard(
-                        icon = "🏍️",
-                        valor = datos["motos"] ?: "",
-                        label = "Motos",
-                        color = Color(0xFFFF5722),
-                        modifier = Modifier.weight(1f)
+                        icon = "🏍️", valor = state.datos["motos"] ?: "",
+                        label = "Motos", color = Color(0xFFFF5722), modifier = Modifier.weight(1f)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── Card ocupación ──
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -222,20 +156,17 @@ fun ReportsScreen(
                                 color = ParkSmartColors.TextSecondary
                             )
                             Text(
-                                text = datos["ocupacion"] ?: "",
+                                text = state.datos["ocupacion"] ?: "",
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = ParkSmartColors.Primary
                             )
                         }
                         Text("📊", fontSize = 36.sp)
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ── Gráfica de barras por hora ──
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -254,13 +185,11 @@ fun ReportsScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
+                            modifier = Modifier.fillMaxWidth().height(120.dp),
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            barrasPorHora.forEach { (hora, altura) ->
+                            state.barrasPorHora.forEach { (hora, altura) ->
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Bottom,
@@ -277,11 +206,7 @@ fun ReportsScreen(
                                             )
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = hora,
-                                        fontSize = 9.sp,
-                                        color = ParkSmartColors.TextSecondary
-                                    )
+                                    Text(text = hora, fontSize = 9.sp, color = ParkSmartColors.TextSecondary)
                                 }
                             }
                         }
@@ -302,7 +227,7 @@ fun ReportsScreen(
     }
 }
 
-// ── Card de métrica ──
+
 @Composable
 fun MetricCard(
     icon: String,
@@ -321,17 +246,8 @@ fun MetricCard(
         Column {
             Text(icon, fontSize = 24.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = valor,
-                style = MaterialTheme.typography.titleLarge,
-                color = color,
-                fontSize = 20.sp
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = ParkSmartColors.TextSecondary
-            )
+            Text(text = valor, style = MaterialTheme.typography.titleLarge, color = color, fontSize = 20.sp)
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = ParkSmartColors.TextSecondary)
         }
     }
 }
