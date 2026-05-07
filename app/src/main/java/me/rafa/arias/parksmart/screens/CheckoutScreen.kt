@@ -21,8 +21,7 @@ import me.rafa.arias.parksmart.viewmodel.CheckoutViewModel
 @Composable
 fun CheckoutScreen(
     viewModel: CheckoutViewModel,
-    onBackClick: () -> Unit = {},
-    onConfirmClick: () -> Unit = {}
+    onBackClick: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -77,11 +76,16 @@ fun CheckoutScreen(
                 )
                 Button(
                     onClick = { viewModel.buscarVehiculo() },
+                    enabled = !state.isSearching,
                     modifier = Modifier.height(52.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
                 ) {
-                    Text(text = "Buscar", color = ParkSmartColors.White, style = MaterialTheme.typography.titleMedium)
+                    if (state.isSearching) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = ParkSmartColors.White, strokeWidth = 2.dp)
+                    } else {
+                        Text(text = "Buscar", color = ParkSmartColors.White, style = MaterialTheme.typography.titleMedium)
+                    }
                 }
             }
 
@@ -121,7 +125,9 @@ fun CheckoutScreen(
                 }
             }
 
-            if (state.vehiculoEncontrado) {
+            val vehiculoData = state.vehiculoData
+            if (state.vehiculoEncontrado && vehiculoData != null) {
+                val v = vehiculoData
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -139,17 +145,17 @@ fun CheckoutScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "${state.datosVehiculo["tipo"]}  ${state.datosVehiculo["placa"]}",
+                                text = "${v.tipo}  ${v.placa}",
                                 style = MaterialTheme.typography.titleLarge,
                                 color = ParkSmartColors.White
                             )
                         }
 
-                        DetalleRow("Hora de ingreso", state.datosVehiculo["horaIngreso"] ?: "")
+                        DetalleRow("Hora de ingreso", v.horaIngreso)
                         HorizontalDivider(color = ParkSmartColors.Divider)
-                        DetalleRow("Hora de salida", state.datosVehiculo["horaSalida"] ?: "")
+                        DetalleRow("Hora de salida", v.horaSalida)
                         HorizontalDivider(color = ParkSmartColors.Divider)
-                        DetalleRow("Tiempo total", state.datosVehiculo["tiempoTotal"] ?: "")
+                        DetalleRow("Tiempo total", v.tiempoTotal)
                     }
                 }
 
@@ -171,14 +177,14 @@ fun CheckoutScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = state.datosVehiculo["total"] ?: "",
+                            text = v.total,
                             style = MaterialTheme.typography.headlineLarge,
                             color = ParkSmartColors.Primary,
                             fontSize = 36.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Tarifa: ${state.datosVehiculo["tarifa"]} · ${state.datosVehiculo["tipo"]}",
+                            text = "Tarifa: ${v.tarifa} · ${v.tipo}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = ParkSmartColors.TextSecondary
                         )
@@ -187,17 +193,31 @@ fun CheckoutScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                if (state.errorMessage.isNotEmpty()) {
+                    Text(
+                        text = state.errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    )
+                }
+
                 Button(
-                    onClick = onConfirmClick,
+                    onClick = { viewModel.confirmarSalida() },
+                    enabled = !state.isConfirming,
                     modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
                 ) {
-                    Text(
-                        text = "✓  Confirmar Pago y Liberar Cupo",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = ParkSmartColors.White
-                    )
+                    if (state.isConfirming) {
+                        CircularProgressIndicator(modifier = Modifier.size(22.dp), color = ParkSmartColors.White, strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            text = "✓  Confirmar Pago y Liberar Cupo",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = ParkSmartColors.White
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

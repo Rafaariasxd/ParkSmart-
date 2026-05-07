@@ -95,19 +95,23 @@ fun AppNavHost() {
 
         composable(Routes.SCANNER) {
             val vm: ScannerViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                vm.uiEvent.collect { navController.popBackStack() }
+            }
             ScannerScreen(
                 viewModel = vm,
-                onBackClick = { navController.popBackStack() },
-                onConfirmClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         composable(Routes.CHECKOUT) {
             val vm: CheckoutViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                vm.uiEvent.collect { navController.popBackStack() }
+            }
             CheckoutScreen(
                 viewModel = vm,
-                onBackClick = { navController.popBackStack() },
-                onConfirmClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() }
             )
         }
 

@@ -22,8 +22,7 @@ import me.rafa.arias.parksmart.viewmodel.ScannerViewModel
 @Composable
 fun ScannerScreen(
     viewModel: ScannerViewModel,
-    onBackClick: () -> Unit = {},
-    onConfirmClick: () -> Unit = {}
+    onBackClick: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -188,17 +187,35 @@ fun ScannerScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    if (state.errorMessage.isNotEmpty()) {
+                        Text(
+                            text = state.errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                        )
+                    }
+
                     Button(
-                        onClick = onConfirmClick,
+                        onClick = { viewModel.registrarIngreso() },
+                        enabled = !state.isLoading,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
                     ) {
-                        Text(
-                            text = "Registrar Ingreso",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = ParkSmartColors.White
-                        )
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                color = ParkSmartColors.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Registrar Ingreso",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = ParkSmartColors.White
+                            )
+                        }
                     }
 
                     TextButton(
