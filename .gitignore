@@ -14,3 +14,5 @@
 .cxx
 local.properties
 CLAUDE.md
+app/google-services.json
+app/ParkSmart.json
