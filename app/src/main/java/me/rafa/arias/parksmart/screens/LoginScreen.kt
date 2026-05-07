@@ -122,17 +122,37 @@ fun LoginScreen(viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(28.dp))
 
+            if (state.errorMessage.isNotEmpty()) {
+                Text(
+                    text = state.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
+
             Button(
                 onClick = { viewModel.onLoginClick() },
+                enabled = !state.isLoading,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = ParkSmartColors.Primary)
             ) {
-                Text(
-                    text = "Ingresar",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = ParkSmartColors.White
-                )
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = ParkSmartColors.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Ingresar",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = ParkSmartColors.White
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))

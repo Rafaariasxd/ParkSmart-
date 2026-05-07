@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "984127335901",
+    "project_id": "parksmart-21c62",
+    "storage_bucket": "parksmart-21c62.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984127335901:android:2fa12616a6bf9ba15b1a34",
+        "android_client_info": {
+          "package_name": "me.rafa.arias.parksmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOU5mYlNtVV0FZq5G_wihQe_BtQ-Yzwys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

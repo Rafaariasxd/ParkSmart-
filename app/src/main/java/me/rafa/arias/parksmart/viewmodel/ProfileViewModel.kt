@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import me.rafa.arias.parksmart.repository.AuthRepository
 
 data class ProfileUiState(
     val nombre: String = "Carlos Gómez",
@@ -43,7 +44,7 @@ class ProfileViewModel : ViewModel() {
 
     fun onLogoutConfirm() {
         _uiState.update { it.copy(showLogoutDialog = false) }
-        // Aquí después se desconecta Firebase Auth
+        AuthRepository.signOut()
         viewModelScope.launch {
             _uiEvent.emit(ProfileUiEvent.NavigateToLogin)
         }

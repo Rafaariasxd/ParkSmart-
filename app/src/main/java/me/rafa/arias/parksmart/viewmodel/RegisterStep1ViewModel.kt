@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import me.rafa.arias.parksmart.repository.RegistrationCache
 
 data class RegisterStep1UiState(
     val nombre: String = "",
@@ -60,6 +61,11 @@ class RegisterStep1ViewModel : ViewModel() {
             return
         }
         _uiState.update { it.copy(errorMessage = "") }
+        RegistrationCache.email = s.email.trim()
+        RegistrationCache.password = s.password
+        RegistrationCache.nombre = s.nombre.trim()
+        RegistrationCache.cedula = s.cedula.trim()
+        RegistrationCache.telefono = s.telefono.trim()
         viewModelScope.launch { _uiEvent.emit(RegisterStep1UiEvent.NavigateToStep2) }
     }
 }

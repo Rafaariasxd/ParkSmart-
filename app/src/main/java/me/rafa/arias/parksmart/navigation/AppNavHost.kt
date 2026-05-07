@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import me.rafa.arias.parksmart.repository.AuthRepository
 import me.rafa.arias.parksmart.screens.*
 import me.rafa.arias.parksmart.viewmodel.*
 
@@ -12,10 +13,11 @@ import me.rafa.arias.parksmart.viewmodel.*
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val startDestination = if (AuthRepository.isLoggedIn()) Routes.DASHBOARD else Routes.LOGIN
 
     NavHost(
         navController = navController,
-        startDestination = Routes.LOGIN
+        startDestination = startDestination
     ) {
 
         composable(Routes.LOGIN) {
