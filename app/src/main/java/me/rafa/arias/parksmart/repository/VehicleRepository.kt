@@ -109,6 +109,18 @@ object VehicleRepository {
         awaitClose { listener.remove() }
     }
 
+    fun observeVehiculosAdentro(): Flow<Int> = callbackFlow {
+        val uid = uid()
+        val listener = db.collection("vehiculos")
+            .whereEqualTo("parqueaderoId", uid)
+            .whereEqualTo("estado", "Adentro")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                trySend(snapshot?.documents?.size ?: 0)
+            }
+        awaitClose { listener.remove() }
+    }
+
     suspend fun loadParkingLotInfo(): Result<ParkingLotInfo> = suspendCoroutine { cont ->
         db.collection("parqueaderos").document(uid()).get()
             .addOnSuccessListener { doc ->

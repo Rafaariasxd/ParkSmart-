@@ -32,20 +32,24 @@ class DashboardViewModel : ViewModel() {
 
             _uiState.update {
                 it.copy(
+                    isLoading = false,
                     parqueaderoNombre = lotInfo?.nombre ?: "Mi Parqueadero",
                     operadorNombre = operName,
                     cuposTotales = cuposTotales
                 )
             }
 
-            VehicleRepository.observeTodayVehiculos().collect { vehiculos ->
-                val adentro = vehiculos.count { it.estado == "Adentro" }
-                _uiState.update { s ->
-                    s.copy(
-                        isLoading = false,
-                        cuposDisponibles = (s.cuposTotales - adentro).coerceAtLeast(0),
-                        ultimosVehiculos = vehiculos.take(3)
-                    )
+            launch {
+                VehicleRepository.observeVehiculosAdentro().collect { adentro ->
+                    _uiState.update { s ->
+                        s.copy(cuposDisponibles = (s.cuposTotales - adentro).coerceAtLeast(0))
+                    }
+                }
+            }
+
+            launch {
+                VehicleRepository.observeTodayVehiculos().collect { vehiculos ->
+                    _uiState.update { s -> s.copy(ultimosVehiculos = vehiculos.take(3)) }
                 }
             }
         }
