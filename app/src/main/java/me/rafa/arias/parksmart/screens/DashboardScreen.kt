@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.rafa.arias.parksmart.ui.ParkSmartColors
 import me.rafa.arias.parksmart.viewmodel.DashboardViewModel
+import me.rafa.arias.parksmart.repository.VehicleItem
 
 
 @Composable
@@ -30,7 +31,7 @@ fun DashboardScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    val porcentajeOcupado = state.cuposDisponibles.toFloat() / state.cuposTotales.toFloat()
+    val porcentajeOcupado = if (state.cuposTotales > 0) state.cuposDisponibles.toFloat() / state.cuposTotales.toFloat() else 1f
     val parqueaderoLleno = state.cuposDisponibles == 0
 
     Scaffold(
@@ -61,12 +62,12 @@ fun DashboardScreen(
             ) {
                 Column(modifier = Modifier.align(Alignment.CenterStart)) {
                     Text(
-                        text = "Hola, Carlos ",
+                        text = "Hola, ${state.operadorNombre}",
                         style = MaterialTheme.typography.titleLarge,
                         color = ParkSmartColors.White
                     )
                     Text(
-                        text = "Sede Cabecera",
+                        text = state.parqueaderoNombre,
                         style = MaterialTheme.typography.bodyMedium,
                         color = ParkSmartColors.White.copy(alpha = 0.85f)
                     )
@@ -198,10 +199,10 @@ fun DashboardScreen(
 
                 state.ultimosVehiculos.forEach { vehiculo ->
                     VehicleCard(
-                        placa = vehiculo.getPlaca(),
-                        tipo = vehiculo.getTipo(),
-                        hora = vehiculo.getHoraIngreso(),
-                        estado = vehiculo.getEstado()
+                        placa = vehiculo.placa,
+                        tipo = vehiculo.tipo,
+                        hora = vehiculo.horaIngreso,
+                        estado = vehiculo.estado
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }

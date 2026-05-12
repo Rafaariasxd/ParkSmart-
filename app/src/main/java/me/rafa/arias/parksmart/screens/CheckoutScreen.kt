@@ -108,7 +108,7 @@ fun CheckoutScreen(
                             color = ParkSmartColors.Error
                         )
                         Text(
-                            text = "La placa ${state.placaBuscada} no tiene\ningreso registrado hoy.",
+                            text = "La placa ${state.placaBuscada.text} no tiene\ningreso registrado hoy.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = ParkSmartColors.Error,
                             textAlign = TextAlign.Center

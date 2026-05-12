@@ -1,5 +1,7 @@
 package me.rafa.arias.parksmart.viewmodel
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,7 +15,7 @@ import kotlinx.coroutines.launch
 import me.rafa.arias.parksmart.repository.VehicleRepository
 
 data class ScannerUiState(
-    val placaDetectada: String = "",
+    val placaDetectada: TextFieldValue = TextFieldValue(""),
     val tipoVehiculo: String = "Carro",
     val escaneando: Boolean = true,
     val isLoading: Boolean = false,
@@ -32,8 +34,15 @@ class ScannerViewModel : ViewModel() {
     private val _uiEvent = MutableSharedFlow<ScannerUiEvent>()
     val uiEvent: SharedFlow<ScannerUiEvent> = _uiEvent.asSharedFlow()
 
-    fun onPlacaChange(value: String) {
-        if (value.length <= 7) _uiState.update { it.copy(placaDetectada = value.uppercase(), errorMessage = "") }
+    fun onPlacaChange(value: TextFieldValue) {
+        val raw = value.text.uppercase().replace("-", "").take(6)
+        val formatted = if (raw.length > 3) "${raw.take(3)}-${raw.drop(3)}" else raw
+        _uiState.update {
+            it.copy(
+                placaDetectada = TextFieldValue(text = formatted, selection = TextRange(formatted.length)),
+                errorMessage = ""
+            )
+        }
     }
 
     fun onTipoVehiculoChange(tipo: String) {
@@ -45,18 +54,18 @@ class ScannerViewModel : ViewModel() {
     }
 
     fun onVolverAEscanear() {
-        _uiState.update { it.copy(escaneando = true, placaDetectada = "") }
+        _uiState.update { it.copy(escaneando = true, placaDetectada = TextFieldValue("")) }
     }
 
     fun registrarIngreso() {
         val s = _uiState.value
-        if (s.placaDetectada.isBlank()) {
+        if (s.placaDetectada.text.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Ingresa la placa del vehículo") }
             return
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = "") }
-            VehicleRepository.registrarIngreso(s.placaDetectada, s.tipoVehiculo).fold(
+            VehicleRepository.registrarIngreso(s.placaDetectada.text, s.tipoVehiculo).fold(
                 onSuccess = { _uiEvent.emit(ScannerUiEvent.IngresoRegistrado) },
                 onFailure = { _uiState.update { it.copy(isLoading = false, errorMessage = "Error al registrar ingreso") } }
             )

@@ -2,13 +2,37 @@ package me.rafa.arias.parksmart.repository
 
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.ceil
+
+data class VehicleItem(
+    val id: String,
+    val placa: String,
+    val tipo: String,
+    val horaIngreso: String,
+    val horaSalida: String?,
+    val estado: String,
+    val total: Int,
+    val entryMs: Long
+)
+
+data class ParkingLotInfo(
+    val nombre: String,
+    val cuposCarros: Int,
+    val cuposMotos: Int,
+    val tarifaCarro: Int,
+    val tarifaMoto: Int
+)
 
 data class VehicleSearchResult(
     val id: String,
@@ -36,6 +60,77 @@ object VehicleRepository {
 
     private fun uid(): String = auth.currentUser?.uid ?: ""
 
+    private fun normalizePlaca(placa: String): String =
+        placa.trim().uppercase().replace("-", "")
+
+    private fun formatPlacaDisplay(raw: String): String {
+        val clean = raw.replace("-", "")
+        return if (clean.length > 3) "${clean.take(3)}-${clean.drop(3)}" else clean
+    }
+
+    private fun startOfTodayMs(): Long = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    private fun docToVehicleItem(doc: DocumentSnapshot): VehicleItem {
+        val tipoRaw = doc.getString("tipo") ?: "Carro"
+        val entryTs = doc.getTimestamp("horaIngreso") ?: Timestamp.now()
+        val entryMs = entryTs.toDate().time
+        val exitTs = doc.getTimestamp("horaSalida")
+        return VehicleItem(
+            id = doc.id,
+            placa = formatPlacaDisplay(doc.getString("placa") ?: ""),
+            tipo = if (tipoRaw == "Carro") "🚗 Carro" else "🏍️ Moto",
+            horaIngreso = timeFmt.format(Date(entryMs)),
+            horaSalida = exitTs?.let { timeFmt.format(it.toDate()) },
+            estado = doc.getString("estado") ?: "Adentro",
+            total = (doc.getLong("total") ?: 0).toInt(),
+            entryMs = entryMs
+        )
+    }
+
+    fun observeTodayVehiculos(): Flow<List<VehicleItem>> = callbackFlow {
+        val uid = uid()
+        val startOfDay = startOfTodayMs()
+        val listener = db.collection("vehiculos")
+            .whereEqualTo("parqueaderoId", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                val items = snapshot?.documents
+                    ?.filter { (it.getTimestamp("horaIngreso")?.toDate()?.time ?: 0L) >= startOfDay }
+                    ?.map { docToVehicleItem(it) }
+                    ?.sortedByDescending { it.entryMs }
+                    ?: emptyList()
+                trySend(items)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun loadParkingLotInfo(): Result<ParkingLotInfo> = suspendCoroutine { cont ->
+        db.collection("parqueaderos").document(uid()).get()
+            .addOnSuccessListener { doc ->
+                cont.resume(Result.success(ParkingLotInfo(
+                    nombre = doc.getString("nombre") ?: "Mi Parqueadero",
+                    cuposCarros = (doc.getLong("cuposCarros") ?: 0).toInt(),
+                    cuposMotos = (doc.getLong("cuposMotos") ?: 0).toInt(),
+                    tarifaCarro = (doc.getLong("tarifaCarro") ?: 2000).toInt(),
+                    tarifaMoto = (doc.getLong("tarifaMoto") ?: 1000).toInt()
+                )))
+            }
+            .addOnFailureListener { cont.resume(Result.failure(it)) }
+    }
+
+    suspend fun loadOperatorName(): Result<String> = suspendCoroutine { cont ->
+        db.collection("operators").document(uid()).get()
+            .addOnSuccessListener { doc ->
+                cont.resume(Result.success(doc.getString("nombre") ?: "Operario"))
+            }
+            .addOnFailureListener { cont.resume(Result.failure(it)) }
+    }
+
     fun calcularCheckout(
         entryMs: Long,
         tipo: String,
@@ -60,13 +155,13 @@ object VehicleRepository {
         )
     }
 
-    private fun formatPesos(amount: Int): String =
+    fun formatPesos(amount: Int): String =
         "\$${"%,d".format(amount).replace(",", ".")}"
 
     suspend fun registrarIngreso(placa: String, tipo: String): Result<Unit> =
         suspendCoroutine { cont ->
             val doc = hashMapOf(
-                "placa" to placa.trim().uppercase(),
+                "placa" to normalizePlaca(placa),
                 "tipo" to tipo,
                 "horaIngreso" to Timestamp.now(),
                 "horaSalida" to null,
@@ -99,8 +194,9 @@ object VehicleRepository {
                 .whereEqualTo("estado", "Adentro")
                 .get()
                 .addOnSuccessListener { result ->
+                    val placaNorm = normalizePlaca(placa)
                     val doc = result.documents.firstOrNull {
-                        it.getString("placa") == placa.trim().uppercase()
+                        normalizePlaca(it.getString("placa") ?: "") == placaNorm
                     }
                     if (doc == null) {
                         cont.resume(Result.success(null))

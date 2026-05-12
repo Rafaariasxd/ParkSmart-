@@ -1,5 +1,7 @@
 package me.rafa.arias.parksmart.viewmodel
 
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -27,7 +29,7 @@ data class CheckoutDatosVehiculo(
 )
 
 data class CheckoutUiState(
-    val placaBuscada: String = "",
+    val placaBuscada: TextFieldValue = TextFieldValue(""),
     val vehiculoEncontrado: Boolean = false,
     val vehiculoNoEncontrado: Boolean = false,
     val isSearching: Boolean = false,
@@ -48,10 +50,12 @@ class CheckoutViewModel : ViewModel() {
     private val _uiEvent = MutableSharedFlow<CheckoutUiEvent>()
     val uiEvent: SharedFlow<CheckoutUiEvent> = _uiEvent.asSharedFlow()
 
-    fun onPlacaChange(value: String) {
+    fun onPlacaChange(value: TextFieldValue) {
+        val raw = value.text.uppercase().replace("-", "").take(6)
+        val formatted = if (raw.length > 3) "${raw.take(3)}-${raw.drop(3)}" else raw
         _uiState.update {
             it.copy(
-                placaBuscada = value.uppercase(),
+                placaBuscada = TextFieldValue(text = formatted, selection = TextRange(formatted.length)),
                 vehiculoEncontrado = false,
                 vehiculoNoEncontrado = false,
                 errorMessage = ""
@@ -60,7 +64,7 @@ class CheckoutViewModel : ViewModel() {
     }
 
     fun buscarVehiculo() {
-        val placa = _uiState.value.placaBuscada.trim()
+        val placa = _uiState.value.placaBuscada.text.trim()
         if (placa.isBlank()) return
         viewModelScope.launch {
             _uiState.update { it.copy(isSearching = true, errorMessage = "") }
@@ -119,7 +123,7 @@ class CheckoutViewModel : ViewModel() {
     fun limpiarBusqueda() {
         _uiState.update {
             it.copy(
-                placaBuscada = "",
+                placaBuscada = TextFieldValue(""),
                 vehiculoEncontrado = false,
                 vehiculoNoEncontrado = false,
                 vehiculoData = null

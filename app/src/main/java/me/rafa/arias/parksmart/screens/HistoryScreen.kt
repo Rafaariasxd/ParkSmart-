@@ -13,7 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import me.rafa.arias.parksmart.model.Vehicle
+import me.rafa.arias.parksmart.repository.VehicleItem
 import me.rafa.arias.parksmart.ui.ParkSmartColors
 import me.rafa.arias.parksmart.viewmodel.HistoryViewModel
 
@@ -101,11 +101,11 @@ fun HistoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ResumenDiaItem(valor = "47", label = "Ingresos", color = ParkSmartColors.Primary)
+                    ResumenDiaItem(valor = state.totalIngresos.toString(), label = "Ingresos", color = ParkSmartColors.Primary)
                     VerticalDivider(modifier = Modifier.height(40.dp), color = ParkSmartColors.Divider)
-                    ResumenDiaItem(valor = "31", label = "Salidas", color = ParkSmartColors.TextSecondary)
+                    ResumenDiaItem(valor = state.totalSalidas.toString(), label = "Salidas", color = ParkSmartColors.TextSecondary)
                     VerticalDivider(modifier = Modifier.height(40.dp), color = ParkSmartColors.Divider)
-                    ResumenDiaItem(valor = "$94.200", label = "Recaudado", color = ParkSmartColors.Primary)
+                    ResumenDiaItem(valor = state.totalRecaudado, label = "Recaudado", color = ParkSmartColors.Primary)
                 }
             }
 
@@ -139,8 +139,8 @@ fun ResumenDiaItem(
 
 
 @Composable
-fun HistoryVehicleCard(vehiculo: Vehicle) {
-    val estadoAdentro = vehiculo.estaAdentro()
+fun HistoryVehicleCard(vehiculo: VehicleItem) {
+    val estadoAdentro = vehiculo.estado == "Adentro"
 
     Box(
         modifier = Modifier
@@ -156,12 +156,12 @@ fun HistoryVehicleCard(vehiculo: Vehicle) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(text = vehiculo.getPlaca(), style = MaterialTheme.typography.titleMedium, color = ParkSmartColors.TextPrimary)
-                Text(text = vehiculo.getTipo(), style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextSecondary)
+                Text(text = vehiculo.placa, style = MaterialTheme.typography.titleMedium, color = ParkSmartColors.TextPrimary)
+                Text(text = vehiculo.tipo, style = MaterialTheme.typography.bodyMedium, color = ParkSmartColors.TextSecondary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Ingresó: ${vehiculo.getHoraIngreso()}" +
-                            if (vehiculo.getHoraSalida() != null) "  •  Salió: ${vehiculo.getHoraSalida()}" else "",
+                    text = "Ingresó: ${vehiculo.horaIngreso}" +
+                            if (vehiculo.horaSalida != null) "  •  Salió: ${vehiculo.horaSalida}" else "",
                     fontSize = 11.sp,
                     color = ParkSmartColors.TextSecondary
                 )
@@ -173,7 +173,7 @@ fun HistoryVehicleCard(vehiculo: Vehicle) {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = vehiculo.getEstado(),
+                    text = vehiculo.estado,
                     fontSize = 11.sp,
                     color = if (estadoAdentro) ParkSmartColors.Primary else ParkSmartColors.Error
                 )

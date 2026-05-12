@@ -89,7 +89,7 @@ fun ScannerScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = state.placaDetectada,
+                text = state.placaDetectada.text,
                 fontSize = 28.sp,
                 color = Color.White.copy(alpha = 0.3f),
                 style = MaterialTheme.typography.headlineMedium
