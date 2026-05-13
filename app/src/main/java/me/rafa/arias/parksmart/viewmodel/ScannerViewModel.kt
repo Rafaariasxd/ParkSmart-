@@ -18,6 +18,7 @@ data class ScannerUiState(
     val placaDetectada: TextFieldValue = TextFieldValue(""),
     val tipoVehiculo: String = "Carro",
     val escaneando: Boolean = true,
+    val escaneandoKey: Int = 0,
     val isLoading: Boolean = false,
     val errorMessage: String = ""
 )
@@ -49,12 +50,25 @@ class ScannerViewModel : ViewModel() {
         _uiState.update { it.copy(tipoVehiculo = tipo) }
     }
 
+    fun onPlacaEscaneada(placa: String) {
+        val raw = placa.uppercase().replace("-", "").take(6)
+        val formatted = if (raw.length > 3) "${raw.take(3)}-${raw.drop(3)}" else raw
+        _uiState.update {
+            it.copy(
+                escaneando = false,
+                placaDetectada = TextFieldValue(text = formatted, selection = TextRange(formatted.length))
+            )
+        }
+    }
+
     fun onSimularEscaneo() {
         _uiState.update { it.copy(escaneando = false) }
     }
 
     fun onVolverAEscanear() {
-        _uiState.update { it.copy(escaneando = true, placaDetectada = TextFieldValue("")) }
+        _uiState.update {
+            it.copy(escaneando = true, placaDetectada = TextFieldValue(""), escaneandoKey = it.escaneandoKey + 1)
+        }
     }
 
     fun registrarIngreso() {
