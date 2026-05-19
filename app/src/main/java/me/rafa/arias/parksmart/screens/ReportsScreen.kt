@@ -109,11 +109,11 @@ fun ReportsScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MetricCard(
-                        icon = "💰", valor = state.datos["ingresos"] ?: "",
+                        icon = "💰", valor = state.ingresos,
                         label = "Total Ingresos", color = ParkSmartColors.Primary, modifier = Modifier.weight(1f)
                     )
                     MetricCard(
-                        icon = "🚗", valor = state.datos["vehiculos"] ?: "",
+                        icon = "🚗", valor = state.vehiculos,
                         label = "Vehículos", color = Color(0xFF2196F3), modifier = Modifier.weight(1f)
                     )
                 }
@@ -125,11 +125,11 @@ fun ReportsScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MetricCard(
-                        icon = "🚙", valor = state.datos["carros"] ?: "",
+                        icon = "🚙", valor = state.carros,
                         label = "Carros", color = ParkSmartColors.Primary, modifier = Modifier.weight(1f)
                     )
                     MetricCard(
-                        icon = "🏍️", valor = state.datos["motos"] ?: "",
+                        icon = "🏍️", valor = state.motos,
                         label = "Motos", color = Color(0xFFFF5722), modifier = Modifier.weight(1f)
                     )
                 }
@@ -156,7 +156,7 @@ fun ReportsScreen(
                                 color = ParkSmartColors.TextSecondary
                             )
                             Text(
-                                text = state.datos["ocupacion"] ?: "",
+                                text = state.ocupacion,
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = ParkSmartColors.Primary
                             )
@@ -214,7 +214,7 @@ fun ReportsScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "Hora pico: 10:00 AM",
+                            text = "Hora pico: ${state.horaPico}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = ParkSmartColors.TextSecondary
                         )

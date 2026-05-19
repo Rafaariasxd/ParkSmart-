@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -21,7 +23,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    val localProps = java.util.Properties().apply {
+    val localProps = Properties().apply {
         val f = rootProject.file("local.properties")
         if (f.exists()) load(f.inputStream())
     }
@@ -29,9 +31,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("parksmart-release.jks")
-            storePassword = localProps["RELEASE_STORE_PASSWORD"] as String?
-            keyAlias = localProps["RELEASE_KEY_ALIAS"] as String?
-            keyPassword = localProps["RELEASE_KEY_PASSWORD"] as String?
+            storePassword = localProps.getProperty("RELEASE_STORE_PASSWORD")
+            keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS")
+            keyPassword = localProps.getProperty("RELEASE_KEY_PASSWORD")
         }
     }
 

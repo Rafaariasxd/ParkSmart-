@@ -92,6 +92,22 @@ object VehicleRepository {
         )
     }
 
+    fun observeVehiculosDesde(startMs: Long): Flow<List<VehicleItem>> = callbackFlow {
+        val uid = uid()
+        val listener = db.collection("vehiculos")
+            .whereEqualTo("parqueaderoId", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                val items = snapshot?.documents
+                    ?.filter { (it.getTimestamp("horaIngreso")?.toDate()?.time ?: 0L) >= startMs }
+                    ?.map { docToVehicleItem(it) }
+                    ?.sortedByDescending { it.entryMs }
+                    ?: emptyList()
+                trySend(items)
+            }
+        awaitClose { listener.remove() }
+    }
+
     fun observeTodayVehiculos(): Flow<List<VehicleItem>> = callbackFlow {
         val uid = uid()
         val startOfDay = startOfTodayMs()
