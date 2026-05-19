@@ -21,6 +21,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val localProps = java.util.Properties().apply {
+        val f = rootProject.file("local.properties")
+        if (f.exists()) load(f.inputStream())
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("parksmart-release.jks")
+            storePassword = localProps["RELEASE_STORE_PASSWORD"] as String?
+            keyAlias = localProps["RELEASE_KEY_ALIAS"] as String?
+            keyPassword = localProps["RELEASE_KEY_PASSWORD"] as String?
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,6 +42,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
