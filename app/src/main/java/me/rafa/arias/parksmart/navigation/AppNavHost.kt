@@ -5,8 +5,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import me.rafa.arias.parksmart.repository.AuthRepository
+import me.rafa.arias.parksmart.repository.VehicleRepository
 import me.rafa.arias.parksmart.screens.*
+import me.rafa.arias.parksmart.ui.applyBrandColor
 import me.rafa.arias.parksmart.viewmodel.*
 
 
@@ -14,6 +17,15 @@ import me.rafa.arias.parksmart.viewmodel.*
 fun AppNavHost() {
     val navController = rememberNavController()
     val startDestination = if (AuthRepository.isLoggedIn()) Routes.DASHBOARD else Routes.LOGIN
+    val scope = rememberCoroutineScope()
+
+    suspend fun loadBrandColor() {
+        VehicleRepository.loadParkingLotInfo().onSuccess { applyBrandColor(it.colorMarca) }
+    }
+
+    LaunchedEffect(Unit) {
+        if (AuthRepository.isLoggedIn()) loadBrandColor()
+    }
 
     NavHost(
         navController = navController,
@@ -25,8 +37,11 @@ fun AppNavHost() {
             LaunchedEffect(Unit) {
                 vm.uiEvent.collect { event ->
                     when (event) {
-                        LoginUiEvent.NavigateToDashboard -> navController.navigate(Routes.DASHBOARD) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        LoginUiEvent.NavigateToDashboard -> {
+                            scope.launch { loadBrandColor() }
+                            navController.navigate(Routes.DASHBOARD) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
                         }
                         LoginUiEvent.NavigateToRegister -> navController.navigate(Routes.REGISTER_STEP1)
                     }

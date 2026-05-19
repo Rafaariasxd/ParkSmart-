@@ -1,6 +1,7 @@
 package me.rafa.arias.parksmart.viewmodel
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -70,7 +71,7 @@ class RegisterStep2ViewModel : ViewModel() {
             return
         }
 
-        val colorHex = "#%06X".format(0xFFFFFF and s.colorSeleccionado.hashCode())
+        val colorHex = "#%06X".format(0xFFFFFF and s.colorSeleccionado.toArgb())
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = "") }

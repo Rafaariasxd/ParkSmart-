@@ -31,7 +31,8 @@ data class ParkingLotInfo(
     val cuposCarros: Int,
     val cuposMotos: Int,
     val tarifaCarro: Int,
-    val tarifaMoto: Int
+    val tarifaMoto: Int,
+    val colorMarca: String = "#90C749"
 )
 
 data class VehicleSearchResult(
@@ -145,7 +146,8 @@ object VehicleRepository {
                     cuposCarros = (doc.getLong("cuposCarros") ?: 0).toInt(),
                     cuposMotos = (doc.getLong("cuposMotos") ?: 0).toInt(),
                     tarifaCarro = (doc.getLong("tarifaCarro") ?: 2000).toInt(),
-                    tarifaMoto = (doc.getLong("tarifaMoto") ?: 1000).toInt()
+                    tarifaMoto = (doc.getLong("tarifaMoto") ?: 1000).toInt(),
+                    colorMarca = doc.getString("colorMarca") ?: "#90C749"
                 )))
             }
             .addOnFailureListener { cont.resume(Result.failure(it)) }
