@@ -120,7 +120,6 @@ fun ProfileScreen(
 
             val infoItems = listOf(
                 Triple("📍", "Sede asignada", state.sede),
-                Triple("🕐", "Turno actual", state.turno),
                 Triple("📅", "Vehículos hoy", state.vehiculosHoy),
                 Triple("💰", "Recaudado hoy", state.recaudadoHoy),
             )

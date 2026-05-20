@@ -161,6 +161,39 @@ object VehicleRepository {
             .addOnFailureListener { cont.resume(Result.failure(it)) }
     }
 
+    data class ProfileInfo(
+        val nombre: String,
+        val rol: String,
+        val nombreParqueadero: String,
+        val ciudad: String
+    )
+
+    suspend fun loadProfileInfo(): Result<ProfileInfo> {
+        val uid = uid()
+        val operatorResult = suspendCoroutine<Result<Pair<String, String>>> { cont ->
+            db.collection("operators").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    cont.resume(Result.success(
+                        (doc.getString("nombre") ?: "") to (doc.getString("rol") ?: "Operario")
+                    ))
+                }
+                .addOnFailureListener { cont.resume(Result.failure(it)) }
+        }
+        val (nombre, rol) = operatorResult.getOrElse { return Result.failure(it) }
+        return suspendCoroutine { cont ->
+            db.collection("parqueaderos").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    cont.resume(Result.success(ProfileInfo(
+                        nombre = nombre,
+                        rol = rol,
+                        nombreParqueadero = doc.getString("nombre") ?: "",
+                        ciudad = doc.getString("ciudad") ?: ""
+                    )))
+                }
+                .addOnFailureListener { cont.resume(Result.failure(it)) }
+        }
+    }
+
     fun calcularCheckout(
         entryMs: Long,
         tipo: String,

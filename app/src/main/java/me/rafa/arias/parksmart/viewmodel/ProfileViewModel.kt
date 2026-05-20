@@ -11,14 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.rafa.arias.parksmart.repository.AuthRepository
+import me.rafa.arias.parksmart.repository.VehicleRepository
 
 data class ProfileUiState(
-    val nombre: String = "Carlos Gómez",
-    val rol: String = "Operario",
-    val sede: String = "Cabecera, Bucaramanga",
-    val turno: String = "7:00 AM - 3:00 PM",
-    val vehiculosHoy: String = "47 registrados",
-    val recaudadoHoy: String = "\$94.200",
+    val isLoading: Boolean = true,
+    val nombre: String = "",
+    val rol: String = "",
+    val sede: String = "",
+    val vehiculosHoy: String = "–",
+    val recaudadoHoy: String = "\$0",
     val showLogoutDialog: Boolean = false
 )
 
@@ -33,6 +34,38 @@ class ProfileViewModel : ViewModel() {
 
     private val _uiEvent = MutableSharedFlow<ProfileUiEvent>()
     val uiEvent: SharedFlow<ProfileUiEvent> = _uiEvent.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            VehicleRepository.loadProfileInfo()
+                .onSuccess { info ->
+                    val sede = listOf(info.nombreParqueadero, info.ciudad)
+                        .filter { it.isNotBlank() }
+                        .joinToString(", ")
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            nombre = info.nombre,
+                            rol = info.rol,
+                            sede = sede
+                        )
+                    }
+                }
+                .onFailure { _uiState.update { it.copy(isLoading = false) } }
+        }
+
+        viewModelScope.launch {
+            VehicleRepository.observeTodayVehiculos().collect { vehiculos ->
+                val recaudado = vehiculos.filter { it.estado == "Salió" }.sumOf { it.total }
+                _uiState.update {
+                    it.copy(
+                        vehiculosHoy = "${vehiculos.size} registrados",
+                        recaudadoHoy = VehicleRepository.formatPesos(recaudado)
+                    )
+                }
+            }
+        }
+    }
 
     fun onShowLogoutDialog() {
         _uiState.update { it.copy(showLogoutDialog = true) }
