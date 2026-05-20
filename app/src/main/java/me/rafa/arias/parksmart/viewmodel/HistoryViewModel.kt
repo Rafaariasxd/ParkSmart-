@@ -47,9 +47,11 @@ class HistoryViewModel : ViewModel() {
 
     fun onFiltroChange(filtro: String) {
         _uiState.update {
+            val filtered = filtrar(it.todosVehiculos, filtro)
             it.copy(
                 filtroSeleccionado = filtro,
-                vehiculosFiltrados = filtrar(it.todosVehiculos, filtro)
+                vehiculosFiltrados = filtered,
+                totalIngresos = filtered.size
             )
         }
     }
